@@ -1,0 +1,67 @@
+service: glue-stream-test # NOTE: update this with your service name
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: dev
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:*"
+      Resource: "*"
+
+resources:
+  Resources:
+    MyBucket:
+      Type: AWS::S3::Bucket
+      DeletionPolicy: Retain
+      Properties:
+        BucketName: glue-streaming-test
+
+    MyJobRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Effect: "Allow"
+              Principal:
+                Service:
+                  - "glue.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+        Path: "/"
+        Policies:
+          -
+            PolicyName: "root"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                -
+                  Effect: "Allow"
+                  Action: "*"
+                  Resource: "*"
+
+    MyJob:
+      Type: AWS::Glue::Job
+      Properties:
+        Name: example-job
+        Role: !Ref MyJobRole
+        GlueVersion: "1.0"
+        ExecutionProperty:
+          MaxConcurrentRuns : 1
+        Command:
+          Name: gluestreaming
+          ScriptLocation:
+            Fn::Join:
+              - ""
+              - - s3://
+                - glue-streaming-test/
+                - scripts/
+                - ExampleJob.scala
+        DefaultArguments:
+          "--stage": ${self:provider.stage}
+          "--job-language": scala
+          "--class": io.gamesight.AWSGlue.ExampleJob
+          "--TempDir": s3://glue-streaming-test/temp/

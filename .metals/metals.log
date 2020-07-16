@@ -1,0 +1,3 @@
+INFO  time: initialize in 0.66s
+WARN  no build tool detected in workspace '/home/jeremy/glue-stream-test'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. 
+WARN  no build target: /home/jeremy/glue-stream-test/scripts/ExampleJob.scala
