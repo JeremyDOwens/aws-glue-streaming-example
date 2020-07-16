@@ -12,12 +12,12 @@ provider:
 
 resources:
   Resources:
-  #   MyDatabase:
-  #     Type: AWS::Glue::Database
-  #     Properties:
-  #       CatalogId: !Ref AWS::AccountId
-  #     DatabaseInput:
-  #       Name: glue-streaming-test-db
+    MyDatabase:
+      Type: AWS::Glue::Database
+      Properties:
+        CatalogId: !Ref AWS::AccountId
+        DatabaseInput:
+          Name: glue-streaming-test-db
   #
   #   MyTable:
   #     Type: AWS::Glue::Table
