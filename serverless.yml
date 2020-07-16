@@ -12,6 +12,30 @@ provider:
 
 resources:
   Resources:
+  #   MyDatabase:
+  #     Type: AWS::Glue::Database
+  #     Properties:
+  #       CatalogId: !Ref AWS::AccountId
+  #     DatabaseInput:
+  #       Name: glue-streaming-test-db
+  #
+  #   MyTable:
+  #     Type: AWS::Glue::Table
+  #     Properties:
+  #       CatalogId: !Ref AWS::AccountId
+  #       DatabaseName: !Ref MyDatabase
+  #       TableInput:
+  #         PartitionKeys:
+  #           - Column
+  #         Retention: Integer
+  #         StorageDescriptor:
+  #           StorageDescriptor
+  #         TableType: String
+  #         ViewExpandedText: String
+  #         ViewOriginalText: String
+
+
+
     MyBucket:
       Type: AWS::S3::Bucket
       DeletionPolicy: Retain
@@ -61,7 +85,7 @@ resources:
                 - scripts/
                 - ExampleJob.scala
         DefaultArguments:
-          "--stage": ${self:provider.stage}
           "--job-language": scala
-          "--class": io.gamesight.AWSGlue.ExampleJob
+          "--class": com.jeremydowens.AWSGlue.GlueApp
           "--TempDir": s3://glue-streaming-test/temp/
+          "--job-bookmark-option": job-bookmark-disable
