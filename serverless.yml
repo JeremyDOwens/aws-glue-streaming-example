@@ -12,29 +12,57 @@ provider:
 
 resources:
   Resources:
+    MyStream:
+      Type: AWS::Kinesis::Stream
+      Properties:
+        Name: sensehat-records
+        RetentionPeriodHours: 24
+        ShardCount: 1
+
     MyDatabase:
       Type: AWS::Glue::Database
       Properties:
         CatalogId: !Ref AWS::AccountId
         DatabaseInput:
-          Name: glue-streaming-test-db
-  #
-  #   MyTable:
-  #     Type: AWS::Glue::Table
-  #     Properties:
-  #       CatalogId: !Ref AWS::AccountId
-  #       DatabaseName: !Ref MyDatabase
-  #       TableInput:
-  #         PartitionKeys:
-  #           - Column
-  #         Retention: Integer
-  #         StorageDescriptor:
-  #           StorageDescriptor
-  #         TableType: String
-  #         ViewExpandedText: String
-  #         ViewOriginalText: String
+          Name: glue-streaming-example-db
 
+    MyTable:
+      Type: AWS::Glue::Table
+      Properties:
+        CatalogId: !Ref AWS::AccountId
+        DatabaseName: !Ref MyDatabase
+        TableInput:
+          Name: glue-streaming-example-table
+          Parameters: {"classification": "json"}
 
+          Retention: 24
+          StorageDescriptor:
+            Parameters: {"endpointUrl": "https://kinesis.us-east-1.amazonaws.com","streamName": "sensehat-records","typeOfData": "kinesis"}
+            Columns:
+              - Name: client_id
+                Type: string
+              - Name: temperature
+                Type: double
+              - Name: humidity
+                Type: double
+              - Name: pressure
+                Type: double
+              - Name: pitch
+                Type: double
+              - Name: roll
+                Type: double
+              - Name: yaw
+                Type: double
+              - Name: timestamp
+                Type: timestamp
+              - Name: count
+                Type: bigint
+            InputFormat: TextInputFormat
+            Location: !Ref MyStream
+            OutputFormat: HiveIgnoreKeyTextOutputFormat
+            SerdeInfo:
+              Parameters: {"paths": "client_id,count,humidity,pitch,pressure,roll,temperature,timestamp,yaw"}
+              SerializationLibrary: org.openx.data.jsonserde.JsonSerDe
 
     MyBucket:
       Type: AWS::S3::Bucket
@@ -86,6 +114,6 @@ resources:
                 - ExampleJob.scala
         DefaultArguments:
           "--job-language": scala
-          "--class": com.jeremydowens.AWSGlue.GlueApp
+          "--class": com.jeremydowens.AWSGlue.ExampleJob
           "--TempDir": s3://glue-streaming-test/temp/
           "--job-bookmark-option": job-bookmark-disable

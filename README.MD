@@ -1,6 +1,6 @@
 # AWS GLUE STREAMING ETL EXAMPLE - Scala
 
-This implementation is based on the solution described here: https://aws.amazon.com/blogs/aws/new-serverless-streaming-etl-with-aws-glue/
+This implementation is based on the solution described here: https://aws.amazon.com/blogs/aws/new-serverless-streaming-etl-with-aws-glue/ and includes some details from https://docs.aws.amazon.com/glue/latest/dg/glue-etl-scala-example.html.
 
 ### Requirements
 
@@ -16,13 +16,14 @@ This implementation is based on the solution described here: https://aws.amazon.
 1. Ensure that you have AWS credentials and the a set up.
 1. `sbt clean compile` - test soon
 1. `serverless deploy`
-1. `aws s3 sync src/main/scala/ s3://<your s3 details here>`
+1. `aws s3 sync src/main/scala/ s3://<your s3 bucket>/scripts` upload the glue script
+1. `aws s3 sync data s3://<your s3 bucket>/data/` upload the static data file
 1. Start the glue job from the console or with the CLI
 
 
 ### TODO
 
-* Backfill cloudformation yaml to include all Glue and Kinesis resources
+* Harden IAM policies
 * Set up NPM for Serverless framework to remove some work.
 
 ### Not Included
