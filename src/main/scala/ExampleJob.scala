@@ -1,16 +1,13 @@
 package com.jeremydowens.AWSGlue
 
-import com.amazonaws.services.glue.DynamicFrame
-import com.amazonaws.services.glue.GlueContext
+import com.amazonaws.services.glue.{DynamicFrame, GlueContext, DataSink, DataSource}
 import com.amazonaws.services.glue.errors.CallSite
 import com.amazonaws.services.glue.util.GlueArgParser
 import com.amazonaws.services.glue.util.Job
 import com.amazonaws.services.glue.util.JsonOptions
 import java.util.Calendar
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.Dataset
-import org.apache.spark.sql.Row
-import org.apache.spark.sql.SaveMode
+import org.apache.spark.sql.{DataFrame, Dataset, Row, SaveMode}
 import org.apache.spark.sql.streaming.Trigger
 import scala.collection.JavaConverters._
 
@@ -18,14 +15,24 @@ object GlueApp {
   def main(sysArgs: Array[String]) {
     val spark: SparkContext = new SparkContext()
     val glueContext: GlueContext = new GlueContext(spark)
+
     // @params: [JOB_NAME]
+    // Additional params don't make a lot of sense for an always-on job, but we could add them here
     val args = GlueArgParser.getResolvedOptions(sysArgs, Seq("JOB_NAME").toArray)
     Job.init(args("JOB_NAME"), glueContext, args.asJava)
+
     // @type: DataSource
     // @args: [database = "testdb", table_name = "testtable", additionalOptions = {"startingPosition": "TRIM_HORIZON", "inferSchema": "true"}, stream_type = kinesis]
     // @return: datasource0
     // @inputs: []
-    val datasource0 = glueContext.getCatalogSource(database = "testdb", tableName = "testtable", redshiftTmpDir = "", transformationContext = "datasource0", additionalOptions = JsonOptions("""{"startingPosition": "TRIM_HORIZON", "inferSchema": "true"}""")).getDataFrame()
+    val datasource0: DataFrame = glueContext.getCatalogSource(
+      database = "testdb",
+      tableName = "testtable",
+      redshiftTmpDir = "",
+      transformationContext = "datasource0",
+      additionalOptions = JsonOptions("""{"startingPosition": "TRIM_HORIZON", "inferSchema": "true"}""")
+    ).getDataFrame()
+
     // @type: DataSink
     // @args: [mapping = [("timestamp", "timestamp", "timestamp", "timestamp"), ("humidity", "double", "humidity", "double"), ("temperature", "double", "temperature", "double"), ("pressure", "double", "pressure", "double"), ("pitch", "double", "pitch", "double"), ("roll", "double", "roll", "double"), ("client_id", "string", "client_id", "string")], stream_batch_time = "100 seconds", stream_checkpoint_location = "s3://glue-streaming-test/sense/output/checkpoint/", connection_type = "s3", path = "s3://test-api-collector/sense/output/", format = "parquet", transformation_ctx = "datasink1"]
     // @return: datasink1
