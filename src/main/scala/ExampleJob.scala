@@ -103,14 +103,22 @@ object ExampleJob {
         // Create a sink to pipe the joined object into
         val sink = glueContext.getSinkWithFormat(
           connectionType = "s3",
-          options = JsonOptions(s"""{"path": "$path"}"""),
+          options = JsonOptions(Map(
+            "path" -> path
+          )),
           transformationContext = "",
           format = "parquet"
         ).writeDynamicFrame(mappedData)
       }
     },
     // These options set the record grouping window and where checkpoints are stored in s3
-    JsonOptions("""{"windowSize" : "100 seconds", "checkpointLocation" : "s3://glue-streaming-test/output/checkpoint/"}"""))
+    // Pregenerated queries use a json string, but it's cleaner in scala to use a Map argument
+    JsonOptions(
+      Map(
+        "windowSize" -> "100 seconds",
+        "checkpointLocation" -> "s3://glue-streaming-test/output/checkpoint/"
+      )
+    ))
     Job.commit()
   }
 }
