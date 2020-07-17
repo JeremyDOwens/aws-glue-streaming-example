@@ -25,6 +25,7 @@ This implementation is based on the solution described here: https://aws.amazon.
 
 * Harden IAM policies
 * Set up NPM for Serverless framework to remove some work.
+* Local tests?
 
 ### Not Included
 
