@@ -30,3 +30,11 @@ This implementation is based on the solution described here: https://aws.amazon.
 ### Not Included
 
 At this stage, setup for the IoT portion will not be covered. If I get this all cleaned up for the later portions of the pipeline, I'll at the very least add a markup tutorial for getting the SenseHat working.
+
+### Dev log
+
+2020-07-17 Replaced console created resources with Cloudformation, added a join to a static data source, added comments and improved Readme.  
+
+2020-07-16 I set up the IoT connections on the Raspberry Pi and started the SenseHat collection and publishing to the cloud. Started this repository and built a prototype using the console.  
+
+2020-07-15 Raspberry Pi with SenseHat arrived. I assembled the pieces and ensured that the hardware functioned.  
