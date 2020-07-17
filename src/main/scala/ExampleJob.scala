@@ -43,10 +43,25 @@ object GlueApp {
       val day: Int = Calendar.getInstance().get(Calendar.DATE)
       val hour: Int = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
       val minute: Int = Calendar.getInstance().get(Calendar.MINUTE)
+
       if (dataFrame.count() > 0) {
         val dynamicFrame = DynamicFrame(dataFrame, glueContext)
-        val applyMapping = dynamicFrame.applyMapping(mappings = Seq(("timestamp", "timestamp", "timestamp", "timestamp"), ("humidity", "double", "humidity", "double"), ("temperature", "double", "temperature", "double"), ("pressure", "double", "pressure", "double"), ("pitch", "double", "pitch", "double"), ("roll", "double", "roll", "double"), ("client_id", "string", "client_id", "string")), caseSensitive = false, transformationContext = "applyMapping")
-        val path = "s3://glue-streaming-test/sense/output" + "/ingest_year=" + "%04d".format(year) + "/ingest_month=" + "%02d".format(month) + "/ingest_day=" + "%02d".format(day) + "/ingest_hour=" + "%02d".format(hour) + "/"
+        val applyMapping = dynamicFrame.applyMapping(
+          mappings = Seq(
+            ("timestamp", "timestamp", "timestamp", "timestamp"),
+            ("humidity", "double", "humidity", "double"),
+            ("temperature", "double", "temperature", "double"),
+            ("pressure", "double", "pressure", "double"),
+            ("pitch", "double", "pitch", "double"),
+            ("roll", "double", "roll", "double"),
+            ("client_id", "string", "client_id", "string")
+          ),
+          caseSensitive = false,
+          transformationContext = "applyMapping"
+        )
+
+        val path = "s3://glue-streaming-test/sense/output" + "/year=" + "%04d".format(year) + "/month=" + "%02d".format(month) + "/day=" + "%02d".format(day) + "/ingest=" + "%02d".format(hour) + "/"
+
         val datasink1 = glueContext.getSinkWithFormat(connectionType = "s3", options = JsonOptions(s"""{"path": "$path"}"""), transformationContext = "datasink1", format = "parquet").writeDynamicFrame(applyMapping)
       }
     }, JsonOptions("""{"windowSize" : "100 seconds", "checkpointLocation" : "s3://glue-streaming-test/sense/output/checkpoint/"}"""))
