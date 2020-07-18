@@ -14,9 +14,9 @@ This implementation is based on the solution described here: https://aws.amazon.
 1. Launch the stack  
 [![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=GlueStreamingExample&templateURL=https://aws-glue-streaming-example.s3.amazonaws.com/cloudformation/primary-stack.yml)
 1. Enter names for your resources using the cloudformation wizard
-1. Upload the scripts and data to your new s3 bucket
+1. Upload the scripts and data to your new s3 bucket 'aws s3 sync s3://aws-glue-streaming-example/ s3://<YOUR BUCKET>/'
 1. Set your IoT device to publish the MQTT upload to the new Kinesis stream
-
+1. Start your glue job
 
 ### TODO
 

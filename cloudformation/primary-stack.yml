@@ -117,3 +117,7 @@ Resources:
         "--class": com.jeremydowens.AWSGlue.ExampleJob
         "--TempDir": !Sub 's3://${ResourceBucketName}/temp/'
         "--job-bookmark-option": job-bookmark-disable
+        "--STREAM_NAME": !Sub '${StreamName}'
+        "--BUCKET_NAME": !Sub '${ResourceBucketName}'
+        "--DATABASE_NAME": !Sub '${DatabaseName}'
+        "--TABLE_NAME": !Sub '${TableName}'

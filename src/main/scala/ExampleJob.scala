@@ -33,14 +33,20 @@ object ExampleJob {
     // This is just for convenience. There is a lot of log output.
     spark.setLogLevel("FATAL")
 
-    val args = GlueArgParser.getResolvedOptions(sysArgs, Seq("JOB_NAME").toArray)
+    val args = GlueArgParser.getResolvedOptions(sysArgs, Seq(
+      "JOB_NAME",
+      "BUCKET_NAME",
+      "STREAM_NAME",
+      "DATABASE_NAME",
+      "TABLE_NAME"
+    ).toArray)
     Job.init(args("JOB_NAME"), glueContext, args.asJava)
 
     // Add the Kinesis stream as a data source. For our example, the stream is called
     // sensehat-records
     val kinesisSource: DataFrame = sparkSession.readStream   // readstream() returns type DataStreamReader
       .format("kinesis")
-      .option("streamName", "sensehat-records")
+      .option("streamName", args("STREAM_NAME"))
       .option("endpointUrl", "https://kinesis.us-east-1.amazonaws.com")
       .option("startingPosition", "TRIM_HORIZON")
       .load
@@ -53,7 +59,7 @@ object ExampleJob {
     val sourceData: DataFrame = kinesisSource.select(
       from_json(
         $"data".cast("string"),
-        glueContext.getCatalogSchemaAsSparkSchema("glue-streaming-example-db", "glue-streaming-example-table")
+        glueContext.getCatalogSchemaAsSparkSchema(args("DATABASE_NAME"), args("TABLE_NAME"))
       ) as "data"
     ).select("data.*")
 
@@ -63,7 +69,7 @@ object ExampleJob {
     val staticData = sparkSession.read          // read() returns type DataFrameReader
       .format("csv")
       .option("header", "true")
-      .load("s3://glue-streaming-test/data/static.csv")  // load() returns a DataFrame
+      .load(s"s3://${args("BUCKET_NAME")}/data/static.csv")  // load() returns a DataFrame
 
     // Process groups of records as they come through the stream
     glueContext.forEachBatch(sourceData, (dataFrame: Dataset[Row], batchId: Long) => {
@@ -99,7 +105,9 @@ object ExampleJob {
           transformationContext = "applyMapping"
         )
         // Build our s3 path using the partition info
-        val path = "s3://glue-streaming-test/output" + "/ingest_year=" + "%04d".format(year) + "/ingest_month=" + "%02d".format(month) + "/ingest_day=" + "%02d".format(day) + "/ingest_hour=" + "%02d".format(hour) + "/"
+        // Glue autogeneration does this with string concat via '+'.
+        // I changed to string interpolation
+        val path = s"s3://${args("BUCKET_NAME")}/output/ingest_year=${"%04d".format(year)}/ingest_month=${"%02d".format(month)}/ingest_day=${"%02d".format(day)}/ingest_hour=${"%02d".format(hour)}/"
         // Create a sink to pipe the joined object into
         val sink = glueContext.getSinkWithFormat(
           connectionType = "s3",
@@ -116,7 +124,7 @@ object ExampleJob {
     JsonOptions(
       Map(
         "windowSize" -> "100 seconds",
-        "checkpointLocation" -> "s3://glue-streaming-test/output/checkpoint/"
+        "checkpointLocation" -> s"s3://${args("BUCKET_NAME")}/output/checkpoint/"
       )
     ))
     Job.commit()
