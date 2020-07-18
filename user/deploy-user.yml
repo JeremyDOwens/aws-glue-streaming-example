@@ -1,0 +1,145 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+
+Parameters:
+  UserName:
+    Description: The name of the user that will be able to deploy
+    Type: String
+  ServiceName:
+    Description: The name of the service that this user will be able to deploy
+    Type: String
+  StreamName:
+    Description: The name of the kinesis stream you plan to create
+    Type: String
+  # Other reasonable parameters like deployment stage might be useful here.
+
+Resources:
+  MyUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Ref UserName
+      Policies: []
+
+  # In order to be able to deploy with the Serverless Framework, we need some s3
+  # and Cloudformation privs. Some of the docs and issues suggest using long lists
+  # of Actions across resource types and then a wildcard for resources. It is my
+  # opinion that we should create policies by resource type and use constraints.
+  # This allows us to easily detach a policy via the console quickly if necessary
+  # and keeps us from altering other applications.
+  GeneralDeployPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Users:
+        - !Ref MyUser
+      ManagedPolicyName: !Sub '${ServiceName}-${UserName}-GeneralDeploy'
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ManageDeploymentBucket
+            Effect: Allow
+            Action:
+              - s3:GetBucketLocation
+              - s3:ListBucket
+              - s3:CreateBucket
+              - s3:DeleteBucket
+            Resource:
+              # Depending on use case, it might be wise to tighten this up
+              - !Sub 'arn:${AWS::Partition}:s3:::${ServiceName}*serverless-dep*'
+          - Sid: ManageCloudformation
+            Effect: Allow
+            Action:
+              - cloudformation:CreateStack
+              - cloudformation:Describe*
+              - cloudformation:ValidateTemplate
+              - cloudformation:UpdateStack
+              - cloudformation:List*
+            Resource: "*"
+          - Sid: ManageIamRoles
+            Effect: Allow
+            Action:
+              - iam:GetRole
+              - iam:CreateRole
+              - iam:PutRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:DeleteRole
+              - iam:PassRole
+            Resource: "*"
+          - Sid: ManageS3Objects
+            Effect: Allow
+            Action:
+              - s3:DeleteObject
+              - s3:GetObject
+              - s3:GetBucketLocation
+              - s3:ListBucket
+              - s3:PutObject
+            Resource: "*"
+          - Sid: ManageLogs
+            Effect: Allow
+            Action:
+              - logs:Describe*
+              - logs:CreateLogGroup
+              - logs:DeleteLogGroup
+            Resource: "*"
+
+  GlueResourcePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Users:
+        - !Ref MyUser
+      ManagedPolicyName: !Sub '${ServiceName}-${UserName}-GlueResources'
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ManageGlueResources
+            Effect: Allow
+            Action:
+              - glue:CreateDatabase
+              - glue:DeleteDatabase
+              - glue:UpdateDatabase
+              - glue:CreateJob
+              - glue:DeleteJob
+              - glue:UpdateJob
+              - glue:CreateTable
+              - glue:DeleteTable
+              - glue:UpdateTable
+            # Need to revisit this and derermine how to harden it. Might need
+            # to separate policies by resource type
+            Resource: '*'
+
+  KinesisResourcePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Users:
+        - !Ref MyUser
+      ManagedPolicyName: !Sub '${ServiceName}-${UserName}-KinesisResources'
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ManageKinesisResources
+            Effect: Allow
+            Action:
+              - kinesis:CreateStream
+              - kinesis:DeleteStream
+            Resource: "*"
+
+  LambdaResourcePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Users:
+        - !Ref MyUser
+      ManagedPolicyName: !Sub '${ServiceName}-${UserName}-LambdaResources'
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ManageLambdaResources
+            Effect: Allow
+            Action:
+              - lambda:UpdateFunctionCode
+              - lambda:Get*
+              - lambda:CreateFunction
+              - lambda:InvokeFunction
+              - lambda:UpdateFunctionConfiguration
+              - lambda:PublishVersion
+              - lambda:DeleteFunction
+              - lambda:List*
+            Resource: "*"

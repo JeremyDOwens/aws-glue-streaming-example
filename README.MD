@@ -12,6 +12,8 @@ This implementation is based on the solution described here: https://aws.amazon.
 
 ### Setup
 
+Note: This is all going to change, the preferred deployment method will be forking this repository, setting up your own secrets for deployment to AWS and using Github Actions to handle all of it.
+
 1. You might need to do some fiddling with serverless setup here
 1. Ensure that you have AWS credentials and the cli configured.
 1. `sbt clean compile` - test soon
@@ -23,6 +25,7 @@ This implementation is based on the solution described here: https://aws.amazon.
 
 ### TODO
 
+* Set up deploy via GitHub actions
 * Harden IAM policies
 * Set up NPM for Serverless framework to remove some work.
 * Local tests?
