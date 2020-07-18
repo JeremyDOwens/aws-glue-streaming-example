@@ -29,3 +29,4 @@ jobs:
       run: |
         aws s3 sync src/main/scala/ s3://aws-glue-streaming-example/scripts/
         aws s3 sync data/ s3://aws-glue-streaming-example/data/
+        aws s3 sync cloudformation/ s3://aws-glue-streaming-example/cloudformation/

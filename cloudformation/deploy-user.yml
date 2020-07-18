@@ -23,6 +23,25 @@ Resources:
     Properties:
       BucketName: !Sub '${BucketName}'
 
+  ReadObjectPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref MyBucket
+      PolicyDocument:
+        Statement:
+          -
+            Action:
+              - "s3:GetObject"
+            Effect: "Allow"
+            Resource:
+              Fn::Join:
+                - ""
+                -
+                  - "arn:aws:s3:::"
+                  - !Ref MyBucket
+                  - "/*"
+            Principal: "*"
+
   # In order to be able to deploy, we need a user with some s3 privs.
   GeneralDeployPolicy:
     Type: AWS::IAM::ManagedPolicy

@@ -1,15 +1,27 @@
 AWSTemplateFormatVersion: 2010-09-09
 
 Parameters:
-  ResourceBucket:
+  JobName:
+    Description: The name of the glue job you wish to create
+    Type: String
+  ResourceBucketName:
     Description: The bucket where scripts and data will be stored
+    Type: String
+  StreamName:
+    Description: The name of the kinesis stream you wish to create
+    Type: String
+  DatabaseName:
+    Description: The name of the glue database you wish to create
+    Type: String
+  TableName:
+    Description: The name of the glue table you wish to create
     Type: String
 
 Resources:
   MyStream:
     Type: AWS::Kinesis::Stream
     Properties:
-      Name: sensehat-records
+      Name: !Sub '${StreamName}'
       RetentionPeriodHours: 24
       ShardCount: 1
 
@@ -18,7 +30,7 @@ Resources:
     Properties:
       CatalogId: !Ref AWS::AccountId
       DatabaseInput:
-        Name: glue-streaming-example-db
+        Name: !Sub '${DatabaseName}'
 
   MyTable:
     Type: AWS::Glue::Table
@@ -26,12 +38,12 @@ Resources:
       CatalogId: !Ref AWS::AccountId
       DatabaseName: !Ref MyDatabase
       TableInput:
-        Name: glue-streaming-example-table
+        Name: !Sub '${TableName}'
         Parameters: {"classification": "json"}
 
         Retention: 24
         StorageDescriptor:
-          Parameters: {"endpointUrl": "https://kinesis.us-east-1.amazonaws.com","streamName": "sensehat-records","typeOfData": "kinesis"}
+          Parameters: {"endpointUrl": "https://kinesis.us-east-1.amazonaws.com", "streamName": {Ref: MyStream}, "typeOfData": "kinesis"}
           Columns:
             - Name: client_id
               Type: string
@@ -62,7 +74,7 @@ Resources:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     Properties:
-      BucketName: glue-streaming-test
+      BucketName: !Sub '${ResourceBucketName}'
 
   MyJobRole:
     Type: AWS::IAM::Role
@@ -92,22 +104,16 @@ Resources:
   MyJob:
     Type: AWS::Glue::Job
     Properties:
-      Name: example-job
+      Name: !Sub '${JobName}'
       Role: !Ref MyJobRole
       GlueVersion: "1.0"
       ExecutionProperty:
         MaxConcurrentRuns : 1
       Command:
         Name: gluestreaming
-        ScriptLocation:
-          Fn::Join:
-            - ""
-            - - s3://
-              - glue-streaming-test/
-              - scripts/
-              - ExampleJob.scala
+        ScriptLocation: !Sub 's3://${ResourceBucketName}/scripts/ExampleJob.scala'
       DefaultArguments:
         "--job-language": scala
         "--class": com.jeremydowens.AWSGlue.ExampleJob
-        "--TempDir": s3://glue-streaming-test/temp/
+        "--TempDir": !Sub 's3://${ResourceBucketName}/temp/'
         "--job-bookmark-option": job-bookmark-disable
