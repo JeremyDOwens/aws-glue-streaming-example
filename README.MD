@@ -12,7 +12,7 @@ This implementation is based on the solution described here: https://aws.amazon.
 
 ### Setup
 
-Note: This is all going to change, the preferred deployment method will be forking this repository, setting up your own secrets for deployment to AWS and using Github Actions to handle all of it.
+![https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=GlueStreamingExample&templateURL=https://aws-glue-streaming-example.s3.amazonaws.com/cloudformation/primary-stack.yml](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)
 
 1. You might need to do some fiddling with serverless setup here
 1. Ensure that you have AWS credentials and the cli configured.
