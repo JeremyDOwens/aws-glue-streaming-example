@@ -2,6 +2,10 @@
 
 This implementation is based on the solution described here: https://aws.amazon.com/blogs/aws/new-serverless-streaming-etl-with-aws-glue/ and includes some details from https://docs.aws.amazon.com/glue/latest/dg/glue-etl-scala-example.html.
 
+## WARNING
+
+Please don't launch this app and leave an AWS Glue job running 24/7 just to consume a few bytes of JSON from a single IoT device. Get this working, and turn it off. Glue does a lot of great things, but it gets expensive quickly. This is not a real use case for this tech. It is just an example to help people get a head start on deployment.
+
 ### Requirements
 
 * Java 8 - Later versions of Java will not work with AWS Glue
