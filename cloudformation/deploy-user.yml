@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+
+Parameters:
+  UserName:
+    Description: The name of the user that will be able to deploy
+    Type: String
+  BucketName:
+    Description: The name of the bucket to store scripts and cloudformation files
+    Type: String
+  # Other reasonable parameters like deployment stage might be useful here.
+
+Resources:
+  MyUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Ref UserName
+      Policies: []
+
+  MyBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Sub '${BucketName}'
+
+  # In order to be able to deploy, we need a user with some s3 privs.
+  GeneralDeployPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Users:
+        - !Ref MyUser
+      ManagedPolicyName: !Sub '${UserName}-GeneralDeploy'
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ManageDeploymentBucket
+            Effect: Allow
+            Action:
+              - s3:GetBucketLocation
+              - s3:ListBucket
+              - s3:CreateBucket
+              - s3:DeleteBucket
+              - s3:DeleteObject
+              - s3:GetObject
+              - s3:GetBucketLocation
+              - s3:ListBucket
+              - s3:PutObject
+            Resource:
+              # Depending on use case, it might be wise to tighten this up
+              - !Sub 'arn:${AWS::Partition}:s3:::${BucketName}*'
