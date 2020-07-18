@@ -1,5 +1,16 @@
+################################################################################
+# This cloudformation template is updated when changes are made. It contains   #
+# all of the required resources for Kinesis, Glue, S3, and IAM that are used   #
+# in the glue streaming data example.                                          #
+#                                                                              #
+# author: jeremy@jeremydowens.com                                              #
+################################################################################
+
 AWSTemplateFormatVersion: 2010-09-09
 
+# The cloudformation wizard will prompt for these parameters to be entered.
+# Note that s3 bucket names are globally unique and if you enter a previously
+# used name, the entire stack creation will fail.
 Parameters:
   JobName:
     Description: The name of the glue job you wish to create
@@ -107,6 +118,7 @@ Resources:
       Name: !Sub '${JobName}'
       Role: !Ref MyJobRole
       GlueVersion: "1.0"
+      MaxCapacity: 2.0
       ExecutionProperty:
         MaxConcurrentRuns : 1
       Command:

@@ -1,3 +1,15 @@
+################################################################################
+# This file is used to create a user that can manage the deployment via github #
+# actions. It doesn't need a whole lot of privs, but it needs access to the    #
+# bucket where the shared resources will be replaced. This also creates the    #
+# publicly accessible bucket and attaches a read only policy.                  #
+#                                                                              #
+# After the user was created, I created credentials using the AWS console and  #
+# saved them as secrets in github so that the deploy action can be completed.  #
+#                                                                              #
+# author: jeremy@jeremydowens.com                                              #
+################################################################################
+
 AWSTemplateFormatVersion: 2010-09-09
 
 
