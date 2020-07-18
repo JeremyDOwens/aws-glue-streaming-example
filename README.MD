@@ -12,15 +12,11 @@ This implementation is based on the solution described here: https://aws.amazon.
 
 ### Setup
 
-![https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=GlueStreamingExample&templateURL=https://aws-glue-streaming-example.s3.amazonaws.com/cloudformation/primary-stack.yml](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)
+1. Launch the stack
+[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=GlueStreamingExample&templateURL=https://aws-glue-streaming-example.s3.amazonaws.com/cloudformation/primary-stack.yml)
 
-1. You might need to do some fiddling with serverless setup here
-1. Ensure that you have AWS credentials and the cli configured.
-1. `sbt clean compile` - test soon
-1. `serverless deploy`
-1. `aws s3 sync src/main/scala/ s3://<your s3 bucket>/scripts` upload the glue script
-1. `aws s3 sync data s3://<your s3 bucket>/data/` upload the static data file
-1. Start the glue job from the console or with the CLI
+1. Enter names for your resources using the cloudformation wizard
+1. Upload the scripts and data to your new s3 bucket
 
 
 ### TODO
