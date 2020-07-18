@@ -13,7 +13,7 @@ This implementation is based on the solution described here: https://aws.amazon.
 ### Setup
 
 1. You might need to do some fiddling with serverless setup here
-1. Ensure that you have AWS credentials and the a set up.
+1. Ensure that you have AWS credentials and the cli configured.
 1. `sbt clean compile` - test soon
 1. `serverless deploy`
 1. `aws s3 sync src/main/scala/ s3://<your s3 bucket>/scripts` upload the glue script
