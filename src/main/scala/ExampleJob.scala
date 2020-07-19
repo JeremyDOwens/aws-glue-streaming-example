@@ -33,6 +33,8 @@ object ExampleJob {
     // This is just for convenience. There is a lot of log output.
     spark.setLogLevel("FATAL")
 
+    // All of these arguments should be supplied by default but can be overridden
+    // for an individual job run. The default values are set during stack creation
     val args = GlueArgParser.getResolvedOptions(sysArgs, Seq(
       "JOB_NAME",
       "BUCKET_NAME",
@@ -42,8 +44,7 @@ object ExampleJob {
     ).toArray)
     Job.init(args("JOB_NAME"), glueContext, args.asJava)
 
-    // Add the Kinesis stream as a data source. For our example, the stream is called
-    // sensehat-records
+    // Add the Kinesis stream as a data source, using the argument as the name
     val kinesisSource: DataFrame = sparkSession.readStream   // readstream() returns type DataStreamReader
       .format("kinesis")
       .option("streamName", args("STREAM_NAME"))
@@ -55,10 +56,11 @@ object ExampleJob {
 
     // We need to extract the data from the jsonpath "data", since kinesis stream
     // sources are nested objects including additional metadata. This is done using the schema that
-    // is defined in our glue table. See serverless.yml for the details.
+    // is defined in our glue table. See cloudformation/primary-stack.yml for the details.
     val sourceData: DataFrame = kinesisSource.select(
       from_json(
         $"data".cast("string"),
+        // The database and table name should be supplied by default
         glueContext.getCatalogSchemaAsSparkSchema(args("DATABASE_NAME"), args("TABLE_NAME"))
       ) as "data"
     ).select("data.*")
@@ -66,7 +68,7 @@ object ExampleJob {
     // Add a static data source, this is just a one line csv file containing details
     // about the client_id referenced in the stream object.
 
-    val staticData = sparkSession.read          // read() returns type DataFrameReader
+    val staticData: DataFrame = sparkSession.read          // read() returns type DataFrameReader
       .format("csv")
       .option("header", "true")
       .load(s"s3://${args("BUCKET_NAME")}/data/static.csv")  // load() returns a DataFrame
