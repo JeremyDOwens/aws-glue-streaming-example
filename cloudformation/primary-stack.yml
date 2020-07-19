@@ -107,10 +107,60 @@ Resources:
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
-              -
-                Effect: "Allow"
-                Action: "*"
+              - Effect: "Allow"
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - "arn:aws:logs:*:*:/aws-glue/*"
+              - Effect: "Allow"
+                Action:
+                  - iam:ListRolePolicies
+                  - iam:GetRole
+                  - iam:GetRolePolicy
+                  - cloudwatch:PutMetricData
+                  - glue:GetTables
+                  - glue:GetDatabases
+                  - glue:GetConnections
+                  - glue:GetJob*
                 Resource: "*"
+              - Effect: "Allow"
+                Action:
+                  - glue:GetDatabase
+                  - glue:UpdateDatabase
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:database/${DatabaseName}'
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:catalog'
+              - Effect: "Allow"
+                Action:
+                  - glue:GetTable
+                  - glue:UpdateTable
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:database/${DatabaseName}'
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:table/${DatabaseName}/${TableName}'
+                  - !Sub 'arn:${AWS::Partition}:glue:${AWS::Region}:${AWS::AccountId}:catalog'
+              - Effect: "Allow"
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ResourceBucketName}'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ResourceBucketName}/*'
+              - Effect: "Allow"
+                Action:
+                  - kinesis:Describe*
+                  - kinesis:Get*
+                  - kinesis:List*
+                Resource:
+                  - Fn::Join:
+                      - ':'
+                      - - arn:aws:kinesis
+                        - !Ref AWS::Region
+                        - !Ref AWS::AccountId
+                        - !Sub 'stream/${StreamName}'
 
   MyJob:
     Type: AWS::Glue::Job
