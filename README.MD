@@ -21,10 +21,10 @@ Please don't launch this app and leave an AWS Glue job running 24/7 just to cons
 1. Upload the scripts and data to your new s3 bucket `aws s3 sync s3://aws-glue-streaming-example/ s3://<YOUR-BUCKET-NAME>/`
 1. Set your IoT device to publish the MQTT upload to the new Kinesis stream
 1. Start your glue job
+1. Turn everything off!
 
 ### TODO
 
-* Harden IAM policies
 * Local tests?
 * Improve setup guide, add images, etc
 
@@ -33,6 +33,8 @@ Please don't launch this app and leave an AWS Glue job running 24/7 just to cons
 At this stage, setup for the IoT portion will not be covered. If I get this all cleaned up for the later portions of the pipeline, I'll at the very least add a markup tutorial for getting the SenseHat working.
 
 ### Dev log
+
+2020-07-19 Updated the IAM policy for the glue job to restrict much of the access. In initial testing, I left it open, but now it should be much more specific. There might be some additional things to add here - feedback is always welcome.
 
 2020-07-18 Removed dependency on the Serverless Framework, set up parameterized cloudformation stack with 1-click launch, set up github actions to replace resources, rebuilt the glue job to use resources as defined by the cloudformation stack parameters
 
