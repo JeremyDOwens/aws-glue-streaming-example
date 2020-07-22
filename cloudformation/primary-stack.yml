@@ -27,6 +27,9 @@ Parameters:
   TableName:
     Description: The name of the glue table you wish to create
     Type: String
+  DeploymentStage:
+    Description: The stage for deployment (staging, production, etc). "test" is reserved
+    Type: String
 
 Resources:
   MyStream:
@@ -179,7 +182,9 @@ Resources:
         "--class": com.jeremydowens.AWSGlue.ExampleJob
         "--TempDir": !Sub 's3://${ResourceBucketName}/temp/'
         "--job-bookmark-option": job-bookmark-disable
+        "--STAGE": !Sub '${DeploymentStage}'
         "--STREAM_NAME": !Sub '${StreamName}'
         "--BUCKET_NAME": !Sub '${ResourceBucketName}'
         "--DATABASE_NAME": !Sub '${DatabaseName}'
         "--TABLE_NAME": !Sub '${TableName}'
+        "--JOB_ROLE": !Ref MyJobRole

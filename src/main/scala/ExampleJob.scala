@@ -19,19 +19,16 @@ import com.amazonaws.services.glue.util.GlueArgParser
 import com.amazonaws.services.glue.util.Job
 import com.amazonaws.services.glue.util.JsonOptions
 import java.util.Calendar
-import org.apache.spark.{SparkContext}
+import org.apache.spark.{SparkContext, SparkConf}
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SaveMode, SparkSession}
 import org.apache.spark.sql.streaming.Trigger
 import scala.collection.JavaConverters._
 import org.apache.spark.sql.functions.from_json
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 
 object ExampleJob {
   def main(sysArgs: Array[String]) {
-    val spark: SparkContext = new SparkContext()
-    val glueContext: GlueContext = new GlueContext(spark)
-    val sparkSession: SparkSession = glueContext.getSparkSession
-    // This is just for convenience. There is a lot of log output.
-    spark.setLogLevel("FATAL")
+
 
     // All of these arguments should be supplied by default but can be overridden
     // for an individual job run. The default values are set during stack creation
@@ -40,17 +37,60 @@ object ExampleJob {
       "BUCKET_NAME",
       "STREAM_NAME",
       "DATABASE_NAME",
-      "TABLE_NAME"
+      "TABLE_NAME",
+      "STAGE",
+      "JOB_ROLE"
     ).toArray)
-    Job.init(args("JOB_NAME"), glueContext, args.asJava)
+
+    val creds = ProfileCredentialsProvider.create().resolveCredentials()
+
+    val spark: SparkContext = if (args("STAGE") == "test") {
+      // For testing, we need to use local execution
+      val conf = new SparkConf().setAppName("GlueStreamingExample").setMaster("local")
+        .set("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+        .set("spark.hadoop.fs.s3.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+        .set("spark.hadoop.fs.s3n.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+        .set("spark.hadoop.fs.AbstractFileSystem.s3.impl", "org.apache.hadoop.fs.s3a.S3A")
+        .set("spark.hadoop.fs.AbstractFileSystem.s3n.impl", "org.apache.hadoop.fs.s3a.S3A")
+        .set("spark.hadoop.fs.AbstractFileSystem.s3a.impl", "org.apache.hadoop.fs.s3a.S3A")
+        .set("spark.hadoop.fs.s3a.access.key", creds.accessKeyId)
+        .set("spark.hadoop.fs.s3a.secret.key", creds.secretAccessKey)
+      new SparkContext(conf)
+    } else {
+      new SparkContext()
+    }
+    val glueContext: GlueContext = new GlueContext(spark)
+    val sparkSession: SparkSession = glueContext.getSparkSession
+    // Explicitly set the log level ("WARN", "INFO", "FATAL")
+    spark.setLogLevel("INFO")
+
+    // When running locally, we should not use the internal glue functions when running
+    // in a local test
+    if (args("STAGE") != "test") {
+      Job.init(args("JOB_NAME"), glueContext, args.asJava)
+    }
+
 
     // Add the Kinesis stream as a data source, using the argument as the name
-    val kinesisSource: DataFrame = sparkSession.readStream   // readstream() returns type DataStreamReader
+    val kinesisSource: DataFrame = if (args("STAGE") != "test") sparkSession.readStream
       .format("kinesis")
       .option("streamName", args("STREAM_NAME"))
       .option("endpointUrl", "https://kinesis.us-east-1.amazonaws.com")
       .option("startingPosition", "TRIM_HORIZON")
       .load
+    else {
+      sparkSession.readStream
+      // For local testing, this requires a connection from: https://github.com/qubole/kinesis-sql
+      // It is included in the build.sbt file
+        .format("kinesis")
+        .option("streamName", args("STREAM_NAME"))
+        .option("endpointUrl", "https://kinesis.us-east-1.amazonaws.com")
+        .option("startingPosition", "TRIM_HORIZON")
+        .option("awsAccessKeyId", creds.accessKeyId)
+        .option("awsSecretKey", creds.secretAccessKey)
+        .option("aws_iam_role", args("JOB_ROLE"))
+        .load
+    }
 
     import sparkSession.implicits._
 
@@ -72,6 +112,8 @@ object ExampleJob {
       .format("csv")
       .option("header", "true")
       .load(s"s3://${args("BUCKET_NAME")}/data/static.csv")  // load() returns a DataFrame
+
+    staticData.printSchema()
 
     // Process groups of records as they come through the stream
     glueContext.forEachBatch(sourceData, (dataFrame: Dataset[Row], batchId: Long) => {
@@ -109,7 +151,8 @@ object ExampleJob {
         // Build our s3 path using the partition info
         // Glue autogeneration does this with string concat via '+'.
         // I changed to string interpolation
-        val path = s"s3://${args("BUCKET_NAME")}/output/ingest_year=${"%04d".format(year)}/ingest_month=${"%02d".format(month)}/ingest_day=${"%02d".format(day)}/ingest_hour=${"%02d".format(hour)}/"
+        val path = s"s3a://${args("BUCKET_NAME")}/output/year=${"%04d".format(year)}/month=${"%02d".format(month)}/day=${"%02d".format(day)}/hour=${"%02d".format(hour)}/"
+
         // Create a sink to pipe the joined object into
         val sink = glueContext.getSinkWithFormat(
           connectionType = "s3",
@@ -126,9 +169,14 @@ object ExampleJob {
     JsonOptions(
       Map(
         "windowSize" -> "100 seconds",
-        "checkpointLocation" -> s"s3://${args("BUCKET_NAME")}/output/checkpoint/"
+        "checkpointLocation" -> s"s3a://${args("BUCKET_NAME")}/output/checkpoint/"
       )
     ))
-    Job.commit()
+
+    // When running locally, we should not use the internal glue functions when running
+    // in a local test
+    if (args("STAGE") != "test") {
+      Job.commit()
+    }
   }
 }
