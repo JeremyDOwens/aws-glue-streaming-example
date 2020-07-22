@@ -23,9 +23,14 @@ Please don't launch this app and leave an AWS Glue job running 24/7 just to cons
 1. Start your glue job
 1. Turn everything off!
 
+### Running Locally
+
+You can run the script locally by configuring /src/test/scala/ExampleSpec.scala with your details. For a small project like this, you could actually just use local execution (or deployed to EC2?) to complete the workload without paying the Glue costs which only become reasonable when you hit a certain scale. Once you have built your stack and configured the test file, use `sbt test` to run the job. For now, you will need to cancel the job manually or it will run forever (or until it crashes for an unknown reason).
+
 ### TODO
 
-* Local tests?
+* Comments for clarity surrounding extra code that only runs when executing Locally
+* Set up mocks/temporary streams and allow for real testing
 * Improve setup guide, add images, etc
 
 ### Not Included

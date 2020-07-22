@@ -25,11 +25,13 @@ class ExampleSpec extends FunSpec {
       com.jeremydowens.AWSGlue.ExampleJob.main(Array(
         "--JOB_NAME", "job",
         "--STAGE", "test",
-        "--BUCKET_NAME", "glue-str-example-bucket-asdfghh",
-        "--STREAM_NAME", "glue-str-example-stream",
-        "--DATABASE_NAME", "glue-str-example-db",
-        "--TABLE_NAME", "glue-str-example-table",
-        "--JOB_ROLE", "GlueStreamingExample3-MyJobRole-15U2HB4B6SXO6",
+        // Note that in order to fill this out, you will need to have created the stack
+        // ahead of time.
+        "--BUCKET_NAME", "<YOUR BUCKET NAME>",
+        "--STREAM_NAME", "<YOUR STREAM NAME>",
+        "--DATABASE_NAME", "<YOUR DATABASE NAME>",
+        "--TABLE_NAME", "<YOUR TABLE NAME>",
+        "--JOB_ROLE", "<YOUR JOB ROLE>",
         "--ACCESS_KEY", creds.accessKeyId,
         "--SECRET_KEY", creds.secretAccessKey
       ))
