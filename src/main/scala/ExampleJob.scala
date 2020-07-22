@@ -24,7 +24,6 @@ import org.apache.spark.sql.{DataFrame, Dataset, Row, SaveMode, SparkSession}
 import org.apache.spark.sql.streaming.Trigger
 import scala.collection.JavaConverters._
 import org.apache.spark.sql.functions.from_json
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 
 object ExampleJob {
   def main(sysArgs: Array[String]) {
@@ -39,10 +38,13 @@ object ExampleJob {
       "DATABASE_NAME",
       "TABLE_NAME",
       "STAGE",
-      "JOB_ROLE"
+      "JOB_ROLE",
+      "ACCESS_KEY",
+      "SECRET_KEY",
+      "ACCESS_KEY",
+      "SECRET_KEY"
     ).toArray)
 
-    val creds = ProfileCredentialsProvider.create().resolveCredentials()
 
     val spark: SparkContext = if (args("STAGE") == "test") {
       // For testing, we need to use local execution
@@ -53,8 +55,8 @@ object ExampleJob {
         .set("spark.hadoop.fs.AbstractFileSystem.s3.impl", "org.apache.hadoop.fs.s3a.S3A")
         .set("spark.hadoop.fs.AbstractFileSystem.s3n.impl", "org.apache.hadoop.fs.s3a.S3A")
         .set("spark.hadoop.fs.AbstractFileSystem.s3a.impl", "org.apache.hadoop.fs.s3a.S3A")
-        .set("spark.hadoop.fs.s3a.access.key", creds.accessKeyId)
-        .set("spark.hadoop.fs.s3a.secret.key", creds.secretAccessKey)
+        .set("spark.hadoop.fs.s3a.access.key", args("ACCESS_KEY"))
+        .set("spark.hadoop.fs.s3a.secret.key", args("SECRET_KEY"))
       new SparkContext(conf)
     } else {
       new SparkContext()
@@ -86,8 +88,8 @@ object ExampleJob {
         .option("streamName", args("STREAM_NAME"))
         .option("endpointUrl", "https://kinesis.us-east-1.amazonaws.com")
         .option("startingPosition", "TRIM_HORIZON")
-        .option("awsAccessKeyId", creds.accessKeyId)
-        .option("awsSecretKey", creds.secretAccessKey)
+        .option("awsAccessKeyId", args("ACCESS_KEY"))
+        .option("awsSecretKey", args("SECRET_KEY"))
         .option("aws_iam_role", args("JOB_ROLE"))
         .load
     }

@@ -8,10 +8,14 @@
 \******************************************************************************/
 
 import org.scalatest._
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 
 class ExampleSpec extends FunSpec {
   describe("Example") {
     it("should run the job") {
+
+      val creds = ProfileCredentialsProvider.create().resolveCredentials()
+
 
       println(s"Starting ExampleJob at ${new java.util.Date()}")
 
@@ -25,7 +29,9 @@ class ExampleSpec extends FunSpec {
         "--STREAM_NAME", "glue-str-example-stream",
         "--DATABASE_NAME", "glue-str-example-db",
         "--TABLE_NAME", "glue-str-example-table",
-        "--JOB_ROLE", "GlueStreamingExample3-MyJobRole-15U2HB4B6SXO6"
+        "--JOB_ROLE", "GlueStreamingExample3-MyJobRole-15U2HB4B6SXO6",
+        "--ACCESS_KEY", creds.accessKeyId,
+        "--SECRET_KEY", creds.secretAccessKey
       ))
 
     }

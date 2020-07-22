@@ -188,3 +188,5 @@ Resources:
         "--DATABASE_NAME": !Sub '${DatabaseName}'
         "--TABLE_NAME": !Sub '${TableName}'
         "--JOB_ROLE": !Ref MyJobRole
+        "--ACCESS_KEY": 'none'
+        "--SECRET_KEY": 'none'
