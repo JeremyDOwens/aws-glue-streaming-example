@@ -39,6 +39,8 @@ At this stage, setup for the IoT portion will not be covered. If I get this all 
 
 ### Dev log
 
+2020-07-22 Added local run support, fixed job to work both locally and in glue, some doc updates to go with the new stuff  
+
 2020-07-19 Updated the IAM policy for the glue job to restrict much of the access. In initial testing, I left it open, but now it should be much more specific. There might be some additional things to add here - feedback is always welcome.
 
 2020-07-18 Removed dependency on the Serverless Framework, set up parameterized cloudformation stack with 1-click launch, set up github actions to replace resources, rebuilt the glue job to use resources as defined by the cloudformation stack parameters
